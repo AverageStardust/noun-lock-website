@@ -2,6 +2,8 @@
 
 import PasswordInput from "./PasswordInput";
 import "./App.css";
+import UploadButton from "./UploadButton";
+import DownloadButton from "./DownloadButton";
 
 // const firebaseConfig = {
 //  apiKey: "AIzaSyD6wNVZGxuhDufqu44JSAwIPoyggaqIDd8",
@@ -15,5 +17,11 @@ import "./App.css";
 // const firebaseApp = initializeApp(firebaseConfig);
 
 export default function App() {
-	return <PasswordInput></PasswordInput>
+	return <>
+		<PasswordInput></PasswordInput>
+		<div class="button-section ">
+			<UploadButton></UploadButton>
+			<DownloadButton></DownloadButton>
+		</div>
+	</>
 }
