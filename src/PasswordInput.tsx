@@ -5,7 +5,7 @@ import assert from "./assert";
 
 const passwordLength = 24;
 
-function PasswordInput() {
+export default function PasswordInput() {
   const [password, _]: Signal<string[]> = createSignal(Array(passwordLength).fill(""));
   const [possibleNouns, setPossibleNouns]: Signal<string[]> = createSignal(nounList);
 
@@ -54,5 +54,3 @@ function PasswordInput() {
     </For>
   </div>;
 }
-
-export default PasswordInput

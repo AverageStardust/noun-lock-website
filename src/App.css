@@ -1,3 +1,10 @@
 .button-section {
-	padding: 8px;
+	display: flex;
+	justify-content: space-around;
+	padding-top: 15px;
+	width: min(24em, 100%);
+}
+
+.lock-open-button {
+	width: 7em;
 }
