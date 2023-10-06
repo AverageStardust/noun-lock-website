@@ -1,16 +1,18 @@
 interface UploadButtonProps {
-	onClick: (blobs: File[]) => void;
+	onUploadFiles: (blobs: File[]) => void;
 }
 
-export default function UploadButton({ onClick }: UploadButtonProps) {
+export default function UploadButton({ onUploadFiles }: UploadButtonProps) {
 	const fileInput = document.createElement("input");
 	fileInput.type = "file";
 	fileInput.multiple = true;
 
 
-	return <button class="download-download-button" onClick={() => {
+	return <button class="upload-download-button" onClick={() => {
 		fileInput.click();
-		if (fileInput.files === null) return;
-		onClick([...fileInput.files]);
+		fileInput.addEventListener("change", () => {
+			if (fileInput.files === null) return;
+			onUploadFiles([...fileInput.files]);
+		});
 	}}>Upload</button>
 }

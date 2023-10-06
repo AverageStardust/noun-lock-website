@@ -9,7 +9,7 @@ export async function createPassword(id: number) {
 		},
 		true,
 		["encrypt", "decrypt"]);
-
+	
 	const idBytes = new Uint8Array(new Uint32Array([id]).buffer).subarray(0, 3);
 	const keyBytes = new Uint8Array(await crypto.subtle.exportKey("raw", key));
 
