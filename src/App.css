@@ -1,10 +1,10 @@
 .button-section {
 	display: flex;
 	justify-content: space-around;
-	padding-top: 15px;
+	padding-top: 8px;
 	width: min(24em, 100%);
 }
 
-.lock-open-button {
-	width: 7em;
+.download-download-button {
+	width: 10em;
 }
