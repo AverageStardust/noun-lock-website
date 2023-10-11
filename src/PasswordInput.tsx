@@ -26,11 +26,13 @@ export default function PasswordInput({ password, setPassword }: PasswordInputPr
 
     if (possibleNouns.length === 1) {
       setInputNoun(event.target, possibleNouns[0]);
+      event.target.value = possibleNouns[0];
       const index = inputElmToIndex(event.target);
       if (index < 23) {
         indexToInputElm(index + 1)?.focus();
       }
     } else {
+      setInputNoun(event.target, null);
       event.target.value = "";
       event.target.focus();
     }
