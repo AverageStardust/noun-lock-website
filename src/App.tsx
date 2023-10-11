@@ -4,12 +4,12 @@ import {
 	getBytes, getStorage, list as listStorage, ref as refStorage, uploadBytes
 } from "firebase/storage";
 
-import { filesToPackage } from "./filePackage";
+import { filesToPackage, packageToFiles } from "./filePackage";
 
 import PasswordInput from "./PasswordInput";
 import UploadButton from "./UploadButton";
 import "./App.css";
-import { readPassword } from "./password";
+import { readPassword, validatePassword } from "./password";
 
 const firebaseConfig = {
 	apiKey: "AIzaSyD6wNVZGxuhDufqu44JSAwIPoyggaqIDd8",
@@ -19,6 +19,7 @@ const firebaseConfig = {
 	messagingSenderId: "105432555108",
 	appId: "1:105432555108:web:1f179689d677210fb0c971"
 };
+const maxPackageSize = 25 * 1024 * 1024;
 
 export default function App() {
 	const firebaseApp = initializeApp(firebaseConfig);
@@ -41,20 +42,30 @@ export default function App() {
 
 		// encrypt files to buffer
 		const { buffer, password: packagePassword } = await filesToPackage(files, id);
+		if (buffer.byteLength > maxPackageSize) throw Error("Upload to large");
 
 		const location = refStorage(firebaseStorage, "packages/" + id);
 		await uploadBytes(location, buffer);
 		setPassword(packagePassword);
 	}
 
-	function downloadBlobs() {
+	async function downloadBlobs() {
+		const result = await readPassword(password());
 
+		const { id, key } = result;
+
+		const location = refStorage(firebaseStorage, "packages/" + id);
+		const buffer = new Uint8Array(await getBytes(location, maxPackageSize));
+
+		const files = await packageToFiles(buffer, key);
+		console.log(files);
 	}
 
 	return <>
 		<PasswordInput password={password} setPassword={setPassword}></PasswordInput>
 		<div class="button-section">
-			<button class="upload-download-button" onClick={downloadBlobs}>Download</button>
+			<button class="upload-download-button" onClick={downloadBlobs}
+				disabled={!validatePassword(password())}>Download</button>
 			<UploadButton onUploadFiles={uploadBlobs}></UploadButton>
 		</div>
 	</>
