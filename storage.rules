@@ -1,20 +1,10 @@
-rules_version = '2';
+rules_version = "2"
 
 service firebase.storage {
   match /b/{bucket}/o {
-    match /uploads/{uploadId} {
-    	allow get: if 
-      	validId(uploadId);
-      allow create: if
-      	validId(uploadId) &&
-      	request.resource.size < 25 * 1024 * 1024;
-      allow update, delete: if false;
+    match /packages/{allPaths=**} {
+      allow read, get;
+      create: if request.resource.size < 25 * 1024 * 1024
     }
   }
-}
-
-function validId(id) {
-	return id.matches("[0-9]+") && 
-  (id[0] != "0" || id == "0") &&
-  int(id) < 16777216;
 }

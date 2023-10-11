@@ -33,7 +33,9 @@ export async function readPassword(keyNouns: string[]) {
 	const passwordBytes = new Uint8Array(27);
 
 	for (let i = 0; i < 24; i++) {
-		writeUint8Noun(passwordBytes, i, keyNouns[i]);
+		if (!writeUint8Noun(passwordBytes, i, keyNouns[i])) {
+			return false;
+		}
 	}
 
 	const idBytes = new Uint8Array(4);
@@ -65,14 +67,18 @@ function readUint8Noun(arr: Uint8Array, nounIndex: number) {
 	return nouns[value];
 }
 
-function writeUint8Noun(arr: Uint8Array, nounIndex: number, noun: string) {
+function writeUint8Noun(arr: Uint8Array, nounIndex: number, noun: string): boolean {
 	const value = nouns.findIndex((elm) => elm === noun);
+
+	if (value === -1) {
+		return false;
+	}
 
 	for (let i = 0; i < 9; i++) {
 		writeUint8Bit(arr, nounIndex * 9 + i, !!(value & (1 << i)));
 	}
 
-	return nouns[value];
+	return true;
 }
 
 function readUint8Bit(arr: Uint8Array, bitIndex: number) {

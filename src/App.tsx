@@ -1,12 +1,15 @@
 import { createSignal } from "solid-js";
 import { initializeApp } from "firebase/app";
-import { getStorage, list as listStorage, ref as storageRef, uploadBytes } from "firebase/storage";
+import {
+	getBytes, getStorage, list as listStorage, ref as refStorage, uploadBytes
+} from "firebase/storage";
 
-import { filesToBuffer } from "./upload";
+import { filesToPackage } from "./filePackage";
 
 import PasswordInput from "./PasswordInput";
 import UploadButton from "./UploadButton";
 import "./App.css";
+import { readPassword } from "./password";
 
 const firebaseConfig = {
 	apiKey: "AIzaSyD6wNVZGxuhDufqu44JSAwIPoyggaqIDd8",
@@ -25,9 +28,9 @@ export default function App() {
 
 	async function uploadBlobs(files: File[]) {
 		// find used ids
-		const uploadFolderLocation = storageRef(firebaseStorage, "uploads");
+		const folderLocation = refStorage(firebaseStorage, "packages");
 		const usedIdSet = new Set(
-			(await listStorage(uploadFolderLocation))
+			(await listStorage(folderLocation))
 				.items.map(ref => Number(ref.name)));
 
 		// pick unused id
@@ -37,11 +40,11 @@ export default function App() {
 		} while (usedIdSet.has(id));
 
 		// encrypt files to buffer
-		const { buffer, password: uploadPassword } = await filesToBuffer(files, id);
+		const { buffer, password: packagePassword } = await filesToPackage(files, id);
 
-		const uploadLocation = storageRef(firebaseStorage, "uploads/" + id);
-		await uploadBytes(uploadLocation, buffer);
-		setPassword(uploadPassword);
+		const location = refStorage(firebaseStorage, "packages/" + id);
+		await uploadBytes(location, buffer);
+		setPassword(packagePassword);
 	}
 
 	function downloadBlobs() {
