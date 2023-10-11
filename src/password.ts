@@ -9,7 +9,7 @@ export async function createPassword(id: number) {
 		},
 		true,
 		["encrypt", "decrypt"]);
-	
+
 	const idBytes = new Uint8Array(new Uint32Array([id]).buffer).subarray(0, 3);
 	const keyBytes = new Uint8Array(await crypto.subtle.exportKey("raw", key));
 
@@ -29,14 +29,14 @@ export async function createPassword(id: number) {
 	}
 }
 
-export function validatePassword(password: string[]) {
+export function validatePassword(password: (null | string)[]) {
 	for (const noun of password) {
 		if (nouns.findIndex((elm) => elm === noun) === -1) return false;
 	}
 	return true;
 }
 
-export async function readPassword(password: string[]) {
+export async function readPassword(password: (null | string)[]) {
 	const passwordBytes = new Uint8Array(27);
 
 	for (let i = 0; i < 24; i++) {
@@ -72,7 +72,7 @@ function readUint8Noun(arr: Uint8Array, nounIndex: number) {
 	return nouns[value];
 }
 
-function writeUint8Noun(arr: Uint8Array, nounIndex: number, noun: string) {
+function writeUint8Noun(arr: Uint8Array, nounIndex: number, noun: null | string) {
 	const value = nouns.findIndex((elm) => elm === noun);
 
 	if (value === -1) throw Error("Failed to read password noun");

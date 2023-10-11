@@ -1,7 +1,9 @@
 import { Accessor, For, Setter } from "solid-js";
-import nounList from "./nouns.json";
-import "./PasswordInput.css";
+
 import assert from "./assert";
+import nounList from "./nouns.json";
+
+import "./PasswordInput.css";
 
 interface PasswordInputProps {
   password: Accessor<(null | string)[]>;
@@ -28,9 +30,7 @@ export default function PasswordInput({ password, setPassword }: PasswordInputPr
       setInputNoun(event.target, possibleNouns[0]);
       event.target.value = possibleNouns[0];
       const index = inputElmToIndex(event.target);
-      if (index < 23) {
-        indexToInputElm(index + 1)?.focus();
-      }
+      indexToInputElm(index + 1)?.focus();
     } else {
       setInputNoun(event.target, null);
       event.target.value = "";

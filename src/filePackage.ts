@@ -120,7 +120,7 @@ export async function packageToFiles(buffer: Uint8Array, key: CryptoKey) {
 		);
 	} catch (e) {
 		if (e instanceof DOMException && e.name === "OperationError") {
-			throw Error("Failed to decrypt, wrong password");
+			throw Error("Failed to decrypt, incorrect password");
 		} else {
 			throw e;
 		}

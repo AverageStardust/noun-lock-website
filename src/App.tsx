@@ -1,5 +1,5 @@
-import { createSignal } from "solid-js";
-import { initializeApp } from "firebase/app";
+import { Signal, createSignal } from "solid-js";
+import { FirebaseError, initializeApp } from "firebase/app";
 import {
 	getBytes, getStorage, list as listStorage, ref as refStorage, uploadBytes
 } from "firebase/storage";
@@ -10,6 +10,7 @@ import PasswordInput from "./PasswordInput";
 import UploadButton from "./UploadButton";
 import "./App.css";
 import { readPassword, validatePassword } from "./password";
+import { Status, StatusState } from "./Status";
 
 const firebaseConfig = {
 	apiKey: "AIzaSyD6wNVZGxuhDufqu44JSAwIPoyggaqIDd8",
@@ -25,7 +26,21 @@ export default function App() {
 	const firebaseApp = initializeApp(firebaseConfig);
 	const firebaseStorage = getStorage(firebaseApp);
 
-	const [password, setPassword] = createSignal(Array(24).fill(null));
+	const [password, setPassword] = createSignal(Array(24).fill(null)) as Signal<(null | string)[]>;
+	const [statusState, setStatusState] = createSignal(StatusState.None) as Signal<StatusState>;
+	const [statusMessage, setStatusMessage] = createSignal("") as Signal<string>;
+
+	function runWithStatus(func: () => Promise<unknown>, pendingMessage: string) {
+		setStatusState(StatusState.Pending);
+		setStatusMessage(pendingMessage);
+		func().then(() => {
+			setStatusState(StatusState.Resolved);
+			setStatusMessage("Done");
+		}, (err: Error) => {
+			setStatusState(StatusState.Rejected);
+			setStatusMessage(err.message);
+		});
+	}
 
 	async function uploadBlobs(files: File[]) {
 		// find used ids
@@ -55,8 +70,17 @@ export default function App() {
 		const { id, key } = result;
 
 		const location = refStorage(firebaseStorage, "packages/" + id);
-		const buffer = new Uint8Array(await getBytes(location, maxPackageSize));
-
+		let buffer;
+		try {
+			buffer = new Uint8Array(await getBytes(location, maxPackageSize));
+		} catch (e) {
+			if (e instanceof FirebaseError && e.message.endsWith("(storage/object-not-found)")) {
+				throw Error("Failed to download, incorrect password");
+			} else {
+				throw e;
+			}
+		}
+			
 		const files = await packageToFiles(buffer, key);
 		console.log(files);
 	}
@@ -64,9 +88,12 @@ export default function App() {
 	return <>
 		<PasswordInput password={password} setPassword={setPassword}></PasswordInput>
 		<div class="button-section">
-			<button class="upload-download-button" onClick={downloadBlobs}
+			<button class="upload-download-button"
+				onClick={() => runWithStatus(downloadBlobs, "Downloading")}
 				disabled={!validatePassword(password())}>Download</button>
-			<UploadButton onUploadFiles={uploadBlobs}></UploadButton>
+			<UploadButton onUploadFiles={
+				(files) => runWithStatus(() => uploadBlobs(files), "Uploading")}></UploadButton>
 		</div>
+		<Status state={statusState} message={statusMessage}></Status>
 	</>
 }

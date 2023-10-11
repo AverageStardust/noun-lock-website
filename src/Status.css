@@ -1,0 +1,53 @@
+.status {
+	background-color: var(--background);
+	border-radius: 6px;
+	padding: 6px;
+	margin: 8px;
+}
+
+@keyframes loading-throbber {
+	0% {
+		content: "";
+	}
+
+	25% {
+		content: ".";
+	}
+
+	50% {
+		content: "..";
+	}
+
+	75% {
+		content: "...";
+	}
+}
+
+.status-pending::after {
+	content: "";
+	animation: loading-throbber 2s steps(4) infinite;
+}
+
+@keyframes fade-out {
+	0% {
+		opacity: 1;
+	}
+
+	50% {
+		opacity: 1;
+	}
+
+	100% {
+		opacity: 0;
+	}
+}
+
+.status-resolved {
+	color: #00ff00;
+	animation: fade-out 5s forwards;
+}
+
+.status-rejected {
+	color: #ff0000;
+	animation: fade-out 10s forwards;
+}
