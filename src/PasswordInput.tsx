@@ -2,15 +2,15 @@ import { Accessor, For, Setter } from "solid-js";
 
 import assert from "./assert";
 import nounList from "./nouns.json";
-
 import "./PasswordInput.css";
 
 interface PasswordInputProps {
   password: Accessor<(null | string)[]>;
   setPassword: Setter<(null | string)[]>;
+  disabled: Accessor<boolean>;
 }
 
-export default function PasswordInput({ password, setPassword }: PasswordInputProps) {
+export default function PasswordInput({ password, setPassword, disabled }: PasswordInputProps) {
   function onInput(event: InputEvent) {
     assert(event.target instanceof HTMLInputElement);
     const possibleNouns = getPossibleNouns(event.target);
@@ -63,7 +63,7 @@ export default function PasswordInput({ password, setPassword }: PasswordInputPr
 
   return <div class="password-grid">
     <For each={password()}>{(noun, index) =>
-      <input class="password-input" type="text" list="nouns" value={noun ?? ""}
+      <input class="password-input" type="text" value={noun ?? ""} disabled={disabled()}
         onInput={onInput} onChange={onChange} id={`password-input-${index()}`}></input>
     }
     </For>

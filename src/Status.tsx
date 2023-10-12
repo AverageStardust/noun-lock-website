@@ -14,12 +14,12 @@ interface StatusProps {
 	message: Accessor<string>;
 }
 
-export function Status({ state, message }: StatusProps) {
+export default function Status({ state, message }: StatusProps) {
 	let statusElm: HTMLDivElement;
 
 	return <Switch>
 		<Match when={state() === StatusState.Pending}>
-			<div class="status status-pending">{message()}</div>
+			<div class="status throbber">{message()}</div>
 		</Match>
 		<Match when={state() === StatusState.Resolved}>
 			<div class="status status-resolved">{message()}</div>

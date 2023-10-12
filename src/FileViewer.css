@@ -1,0 +1,77 @@
+.file-viewer-body {
+	background-color: var(--background-alt);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	width: 100%;
+	box-sizing: border-box;
+	border-radius: 6px;
+	padding: 3px;
+	margin: 3px;
+}
+
+.file-viewer-titlebar {
+	background-color: var(--background);
+	width: 100%;
+	display: flex;
+	align-items: center;
+	gap: 0.7em;
+	box-sizing: border-box;
+	border-radius: 0.7em;
+	padding-left: 0.7em;
+	padding-right: 0.7em;
+	margin-bottom: 3px;
+}
+
+.file-viewer-title {
+	color: var(--text-bright);
+	font-weight: bold;
+}
+
+.file-viewer-size {
+	color: var(--text-muted);
+	font-style: italic;
+}
+
+.file-viewer-spacer {
+	flex: 1;
+}
+
+.file-viewer-button {
+	padding: 0;
+	margin-left: 1em;
+	width: 2.8em;
+	height: 1.5em;
+	border-radius: 0.7em;
+	margin: 0;
+	margin-right: -0.7em;
+}
+
+.file-viewer-content {
+	display: flex;
+	background-color: var(--background);
+	width: 100%;
+	box-sizing: border-box;
+	border-radius: 6px;
+	padding: 6px;
+}
+
+.file-viewer-text {
+	white-space: pre-wrap;
+}
+
+.file-viewer-media {
+	flex: 1;
+}
+
+.spoiler-light {
+	filter: blur(4px);
+	pointer-events: none;
+	user-select: none;
+}
+
+.spoiler-heavy {
+	filter: blur(32px);
+	pointer-events: none;
+	user-select: none;
+}

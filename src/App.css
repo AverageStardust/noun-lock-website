@@ -1,11 +1,51 @@
-.button-section {
+.network-section {
 	display: flex;
 	justify-content: space-around;
 	padding-top: 8px;
 	width: min(24em, 100%);
 }
 
-.upload-download-button {
-	width: 10em;
+.network-button {
+	width: 9em;
+}
+
+.add-file-button {
+	border-radius: 26px;
+	font-size: 2em;
+	padding: 0;
+	padding-bottom: 6px;
+	width: 52px;
+	height: 52px;
+}
+
+@keyframes throbber-animation {
+	0% {
+		content: "";
+	}
+
+	25% {
+		content: ".";
+	}
+
+	50% {
+		content: "..";
+	}
+
+	75% {
+		content: "...";
+	}
+}
+
+.throbber::after {
+	content: "";
+	animation: throbber-animation 2s steps(4) infinite;
+}
+
+button, input {
 	margin: 2px;
+	padding: 4px;
+}
+
+hr {
+	width: 100%
 }

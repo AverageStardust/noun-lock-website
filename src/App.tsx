@@ -1,99 +1,120 @@
-import { Signal, createSignal } from "solid-js";
-import { FirebaseError, initializeApp } from "firebase/app";
-import {
-	getBytes, getStorage, list as listStorage, ref as refStorage, uploadBytes
-} from "firebase/storage";
+import { For, Show, Signal, createEffect, createSignal } from "solid-js";
 
-import { filesToPackage, packageToFiles } from "./filePackage";
-
+import { downloadFiles, uploadFiles } from "./firebase";
+import { validatePassword } from "./password";
+import Status, { StatusState } from "./Status";
+import FileViewer from "./FileViewer";
 import PasswordInput from "./PasswordInput";
-import UploadButton from "./UploadButton";
 import "./App.css";
-import { readPassword, validatePassword } from "./password";
-import { Status, StatusState } from "./Status";
 
-const firebaseConfig = {
-	apiKey: "AIzaSyD6wNVZGxuhDufqu44JSAwIPoyggaqIDd8",
-	authDomain: "nounlock-34fe7.firebaseapp.com",
-	projectId: "nounlock-34fe7",
-	storageBucket: "nounlock-34fe7.appspot.com",
-	messagingSenderId: "105432555108",
-	appId: "1:105432555108:web:1f179689d677210fb0c971"
-};
-const maxPackageSize = 25 * 1024 * 1024;
+export enum AppState {
+	Ready,
+	Working,
+	Uploaded,
+	Downloaded
+}
 
 export default function App() {
-	const firebaseApp = initializeApp(firebaseConfig);
-	const firebaseStorage = getStorage(firebaseApp);
-
-	const [password, setPassword] = createSignal(Array(24).fill(null)) as Signal<(null | string)[]>;
+	const [state, setState] = createSignal(AppState.Ready) as Signal<AppState>;
 	const [statusState, setStatusState] = createSignal(StatusState.None) as Signal<StatusState>;
 	const [statusMessage, setStatusMessage] = createSignal("") as Signal<string>;
+	const [password, setPassword] = createSignal(new Array(24)) as Signal<(null | string)[]>;
+	const [files, setFiles] = createSignal([] as File[]) as Signal<File[]>;
 
-	function runWithStatus(func: () => Promise<unknown>, pendingMessage: string) {
+	const fileInput = document.createElement("input");
+	fileInput.type = "file";
+	fileInput.multiple = true;
+
+	function runWithStatus(func: () => Promise<unknown>, jobMessage: string, showDone = true) {
+		const _state = state();
+		setState(AppState.Working);
+
 		setStatusState(StatusState.Pending);
-		setStatusMessage(pendingMessage);
+		setStatusMessage(jobMessage);
 		func().then(() => {
-			setStatusState(StatusState.Resolved);
-			setStatusMessage("Done");
+			if (showDone) {
+				setStatusState(StatusState.Resolved);
+				setStatusMessage("Done");
+			} else {
+				setStatusState(StatusState.None);
+				setStatusMessage("");
+			}
 		}, (err: Error) => {
 			setStatusState(StatusState.Rejected);
 			setStatusMessage(err.message);
+			setState(_state);
 		});
 	}
 
-	async function uploadBlobs(files: File[]) {
-		// find used ids
-		const folderLocation = refStorage(firebaseStorage, "packages");
-		const usedIdSet = new Set(
-			(await listStorage(folderLocation))
-				.items.map(ref => Number(ref.name)));
-
-		// pick unused id
-		let id;
-		do {
-			id = Math.floor((Math.random() * 2 ** 24))
-		} while (usedIdSet.has(id));
-
-		// encrypt files to buffer
-		const { buffer, password: packagePassword } = await filesToPackage(files, id);
-		if (buffer.byteLength > maxPackageSize) throw Error("Upload to large");
-
-		const location = refStorage(firebaseStorage, "packages/" + id);
-		await uploadBytes(location, buffer);
-		setPassword(packagePassword);
+	function inputFiles() {
+		setState(AppState.Ready);
+		fileInput.click();
+		fileInput.addEventListener("change", () => {
+			if (fileInput.files === null) return;
+			setFiles([...files(), ...fileInput.files]);
+		});
 	}
 
-	async function downloadBlobs() {
-		const result = await readPassword(password());
+	function spliceFile(file: File, newFile?: File) {
+		const _files = Array.from(files());
+		const index = _files.findIndex(_file => _file === file);
+		if (newFile) _files.splice(index, 1, newFile);
+		else _files.splice(index, 1);
+		setFiles(_files);
+	}
 
-		const { id, key } = result;
+	function setFileName(file: File, name: string) {
+		const renamedFile = new File([file], name, { type: file.type });
+		spliceFile(file, renamedFile);
+	}
 
-		const location = refStorage(firebaseStorage, "packages/" + id);
-		let buffer;
-		try {
-			buffer = new Uint8Array(await getBytes(location, maxPackageSize));
-		} catch (e) {
-			if (e instanceof FirebaseError && e.message.endsWith("(storage/object-not-found)")) {
-				throw Error("Failed to download, incorrect password");
-			} else {
-				throw e;
-			}
+	function nameHasSpoiler(name: string) {
+		return name.startsWith("||") && name.endsWith("||");
+	}
+
+	function toggleFileSpoiler(file: File) {
+		if (nameHasSpoiler(file.name)) {
+			setFileName(file, file.name.slice(2, -2));
+		} else {
+			setFileName(file, "||" + file.name + "||");
 		}
-			
-		const files = await packageToFiles(buffer, key);
-		console.log(files);
 	}
 
 	return <>
-		<PasswordInput password={password} setPassword={setPassword}></PasswordInput>
-		<div class="button-section">
-			<button class="upload-download-button"
-				onClick={() => runWithStatus(downloadBlobs, "Downloading")}
-				disabled={!validatePassword(password())}>Download</button>
-			<UploadButton onUploadFiles={
-				(files) => runWithStatus(() => uploadBlobs(files), "Uploading")}></UploadButton>
-		</div>
+		<PasswordInput password={password} setPassword={setPassword}
+			disabled={() => state() !== AppState.Ready}></PasswordInput>
+		<div class="network-section">
+			<button class="network-button" onClick={() => runWithStatus(
+				async () => {
+					setFiles(await downloadFiles(password()));
+					setState(AppState.Downloaded);
+				}, "Downloading", false)}
+				disabled={
+					files().length > 0 ||
+					state() !== AppState.Ready ||
+					!validatePassword(password())}
+			>{state() === AppState.Downloaded ? "Downloaded" : "Download"}</button>
+			<button class="network-button" onClick={() => runWithStatus(
+				async () => {
+					setPassword(await uploadFiles(files()));
+					setState(AppState.Uploaded);
+				}, "Uploading", true)}
+				disabled={
+					files().length === 0 ||
+					state() !== AppState.Ready}
+			>{state() === AppState.Uploaded ? "Uploaded" : "Upload"}</button>
+		</div >
+		<hr></hr>
 		<Status state={statusState} message={statusMessage}></Status>
+		<For each={files()}>{(file, index) =>
+			<FileViewer file={() => files()[index()]}
+				hasSpoiler={() => nameHasSpoiler(files()[index()].name)}
+				removeDisabled={() => state() !== AppState.Ready}
+				toggleSpoiler={() => toggleFileSpoiler(files()[index()])}
+				removeFile={() => spliceFile(files()[index()])}></FileViewer>
+		}</For>
+		<Show when={state() === AppState.Ready}>
+			<button class="add-file-button" onClick={inputFiles}>+</button>
+		</Show>
 	</>
 }
