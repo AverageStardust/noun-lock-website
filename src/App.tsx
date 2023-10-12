@@ -23,7 +23,12 @@ export default function App() {
 
 	const fileInput = document.createElement("input");
 	fileInput.type = "file";
+	fileInput.accept = "text/plain, application/json, image/*, audio/*, video/*";
 	fileInput.multiple = true;
+	fileInput.addEventListener("change", () => {
+		if (fileInput.files === null) return;
+		setFiles([...files(), ...fileInput.files]);
+	});
 
 	function runWithStatus(func: () => Promise<unknown>, jobMessage: string, showDone = true) {
 		const _state = state();
@@ -46,27 +51,19 @@ export default function App() {
 		});
 	}
 
-	function inputFiles() {
-		setState(AppState.Ready);
-		fileInput.click();
-		fileInput.addEventListener("change", () => {
-			if (fileInput.files === null) return;
-			setFiles([...files(), ...fileInput.files]);
-		});
-	}
-
-	function spliceFile(file: File, newFile?: File) {
+	function renameFile(file: File, name: string) {
 		const _files = files();
 		const index = _files.findIndex(_file => _file === file);
-		if (newFile) _files.splice(index, 1, newFile);
-		else _files.splice(index, 1);
+		const renamedFile = new File([file], name, { type: file.type });
+		_files.splice(index, 1, renamedFile);
 		setFiles(_files);
 	}
 
-	function setFileName(file: File, name: string) {
-		if (name === file.name) return;
-		const renamedFile = new File([file], name, { type: file.type });
-		spliceFile(file, renamedFile);
+	function removeFile(file: File,) {
+		const _files = files();
+		const index = _files.findIndex(_file => _file === file);
+		_files.splice(index, 1);
+		setFiles(Array.from(_files));
 	}
 
 	return <>
@@ -97,12 +94,12 @@ export default function App() {
 		<Status state={statusState} message={statusMessage}></Status>
 		<For each={files()}>{(file, index) =>
 			<FileViewer file={file}
-				setFileName={(fileName: string) => setFileName(files()[index()], fileName)}
-				removeFile={() => spliceFile(files()[index()])}
+				setFileName={(fileName: string) => renameFile(files()[index()], fileName)}
+				removeFile={() => removeFile(files()[index()])}
 				removeDisabled={() => state() !== AppState.Ready}></FileViewer>
 		}</For>
 		<Show when={state() === AppState.Ready}>
-			<button class="file-add-button" onClick={inputFiles}>
+			<button class="file-add-button" onClick={() => fileInput.click()}>
 				<i class="file-add-i gg-file-add"></i>
 			</button>
 		</Show>
