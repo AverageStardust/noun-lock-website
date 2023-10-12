@@ -49,7 +49,7 @@ export default function PasswordInput({ password, setPassword, disabled }: Passw
   }
 
   function getPossibleNouns(input: HTMLInputElement) {
-    return nounList.filter((noun) => noun.startsWith(input.value));
+    return nounList.filter((noun) => noun.startsWith(input.value.toLowerCase()));
   }
 
   function inputElmToIndex(elm: HTMLInputElement) {
