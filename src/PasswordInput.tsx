@@ -64,6 +64,7 @@ export default function PasswordInput({ password, setPassword, disabled }: Passw
   return <div class="password-grid">
     <For each={password()}>{(noun, index) =>
       <input class="password-input" type="text" value={noun ?? ""} disabled={disabled()}
+        autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck={false}
         onInput={onInput} onChange={onChange} id={`password-input-${index()}`}></input>
     }
     </For>
