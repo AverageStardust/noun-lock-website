@@ -47,9 +47,13 @@ export default function FileViewer(
 			<div class="file-viewer-title">{name()}</div>
 			<div class="file-viewer-size">({formatByteUnit(file.size)})</div>
 			<hr class="file-viewer-spacer"></hr>
-			<button class="file-viewer-button" onClick={toggleSpoiler}>👁</button>
+			<button class="file-viewer-button" onClick={toggleSpoiler}>
+				<i class="gg-eye"></i>
+			</button>
 			<button class="file-viewer-button" onClick={removeFile}
-				disabled={removeDisabled()}>⨯</button>
+				disabled={removeDisabled()}>
+				<i class="gg-trash"></i>
+				</button>
 		</div>
 		<div class="file-viewer-content">
 			<Switch>

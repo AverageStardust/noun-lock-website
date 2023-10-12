@@ -102,7 +102,9 @@ export default function App() {
 				removeDisabled={() => state() !== AppState.Ready}></FileViewer>
 		}</For>
 		<Show when={state() === AppState.Ready}>
-			<button class="add-file-button" onClick={inputFiles}>+</button>
+			<button class="file-add-button" onClick={inputFiles}>
+				<i class="file-add-i gg-file-add"></i>
+			</button>
 		</Show>
 	</>
 }

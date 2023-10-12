@@ -1,3 +1,6 @@
+@import "https://unpkg.com/css.gg@2.0.0/icons/css/eye.css";
+@import "https://unpkg.com/css.gg@2.0.0/icons/css/trash.css";
+
 .file-viewer-body {
 	background-color: var(--background-alt);
 	display: flex;
@@ -15,11 +18,10 @@
 	width: 100%;
 	display: flex;
 	align-items: center;
-	gap: 0.7em;
+	gap: 0.5em;
 	box-sizing: border-box;
-	border-radius: 0.7em;
-	padding-left: 0.7em;
-	padding-right: 0.7em;
+	border-radius: 4px;
+	padding-left: 0.5em;
 	margin-bottom: 3px;
 }
 
@@ -38,13 +40,13 @@
 }
 
 .file-viewer-button {
-	padding: 0;
-	margin-left: 1em;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 	width: 2.8em;
 	height: 1.5em;
-	border-radius: 0.7em;
 	margin: 0;
-	margin-right: -0.7em;
+	padding-bottom: 6px;
 }
 
 .file-viewer-content {
@@ -70,6 +72,7 @@
 	user-select: none;
 }
 
-img.spoiler, video.spoiler {
+img.spoiler,
+video.spoiler {
 	filter: blur(32px);
 }
