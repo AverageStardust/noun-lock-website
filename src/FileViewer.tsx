@@ -1,26 +1,51 @@
-import { Accessor, Match, Switch, createSignal } from "solid-js";
+import { Accessor, Match, Signal, Switch, createEffect, createSignal, onMount } from "solid-js";
 
 import "./FileViewer.css";
 
 const textDecoder = new TextDecoder();
 
 interface FilesViewerProps {
-	file: Accessor<File>;
-	hasSpoiler: Accessor<boolean>;
+	file: File;
+	setFileName: (name: string) => void;
+	removeFile: () => void;
 	removeDisabled: Accessor<boolean>
-	toggleSpoiler: () => void;
-	removeFile?: () => void;
 }
 
 export default function FileViewer(
-	{ file, hasSpoiler, removeDisabled, toggleSpoiler, removeFile }: FilesViewerProps) {
+	{ file, setFileName, removeDisabled, removeFile }: FilesViewerProps) {
 	const [buffer, setBuffer] = createSignal(new ArrayBuffer(0));
-	file().arrayBuffer().then(setBuffer);
+	const [name, setName] = createSignal(file.name) as Signal<string>;
+	createEffect(() => setFileName(name()));
+
+	function hasSpoiler() {
+		return name().startsWith("||") && name().endsWith("||");
+	}
+
+	function toggleSpoiler() {
+		if (hasSpoiler()) {
+			setName(name().slice(2, -2));
+		} else {
+			setName("||" + name() + "||");
+		}
+	}
+
+	let contentElm: any = undefined;
+
+	file.arrayBuffer().then((_buffer) => {
+		setBuffer(_buffer);
+		createEffect(() => {
+			if (hasSpoiler()) {
+				contentElm.classList.add("spoiler");
+			} else {
+				contentElm.classList.remove("spoiler");
+			}
+		});
+	});
 
 	return <div class="file-viewer-body">
 		<div class="file-viewer-titlebar">
-			<div class="file-viewer-title">{file().name}</div>
-			<div class="file-viewer-size">({formatByteUnit(file().size)})</div>
+			<div class="file-viewer-title">{name()}</div>
+			<div class="file-viewer-size">({formatByteUnit(file.size)})</div>
 			<hr class="file-viewer-spacer"></hr>
 			<button class="file-viewer-button" onClick={toggleSpoiler}>👁</button>
 			<button class="file-viewer-button" onClick={removeFile}
@@ -31,23 +56,22 @@ export default function FileViewer(
 				<Match when={buffer().byteLength === 0}>
 					<div class="throbber">Rendering file</div>
 				</Match>
-				<Match when={file().type.startsWith("text/") || file().type === "application/json"}>
-					<div class={"file-viewer-text" + (hasSpoiler() ? " spoiler-light" : "")}>
+				<Match when={file.type.startsWith("text/") || file.type === "application/json"}>
+					<div class="file-viewer-text" ref={contentElm}>
 						{textDecoder.decode(buffer())}
 					</div>
 				</Match>
-				<Match when={file().type.startsWith("image/")}>
-					<img class={(hasSpoiler() ? "spoiler-heavy" : "")}
-						src={URL.createObjectURL(file())}></img>
+				<Match when={file.type.startsWith("image/")}>
+					<img src={URL.createObjectURL(file)} ref={contentElm}></img>
 				</Match>
-				<Match when={file().type.startsWith("audio/")}>
-					<audio controls class={"file-viewer-media" + (hasSpoiler() ? " spoiler-light" : "")}>
-						<source src={URL.createObjectURL(file())} type={file().type}></source>
+				<Match when={file.type.startsWith("audio/")}>
+					<audio controls class="file-viewer-media" ref={contentElm}>
+						<source src={URL.createObjectURL(file)} type={file.type}></source>
 					</audio>
 				</Match>
-				<Match when={file().type.startsWith("video/")}>
-					<video controls class={"file-viewer-media" + (hasSpoiler() ? " spoiler-heavy" : "")}>
-						<source src={URL.createObjectURL(file())} type={file().type}></source>
+				<Match when={file.type.startsWith("video/")}>
+					<video controls class="file-viewer-media" ref={contentElm}>
+						<source src={URL.createObjectURL(file)} type={file.type}></source>
 					</video>
 				</Match>
 			</Switch>

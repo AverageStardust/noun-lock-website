@@ -18,7 +18,10 @@ export default function App() {
 	const [state, setState] = createSignal(AppState.Ready) as Signal<AppState>;
 	const [statusState, setStatusState] = createSignal(StatusState.None) as Signal<StatusState>;
 	const [statusMessage, setStatusMessage] = createSignal("") as Signal<string>;
-	const [password, setPassword] = createSignal(new Array(24)) as Signal<(null | string)[]>;
+	const [password, setPassword] = createSignal(
+		["pump", "bread", "bulb", "pitch", "owl", "sushi", "bike", "icicle", "memory", "plot",
+			"cap", "snail", "judo", "bread", "unit", "vase", "tempo", "injury", "output", "region",
+			"twist", "rank", "string", "boat"]) as Signal<(null | string)[]>;
 	const [files, setFiles] = createSignal([] as File[]) as Signal<File[]>;
 
 	const fileInput = document.createElement("input");
@@ -56,7 +59,7 @@ export default function App() {
 	}
 
 	function spliceFile(file: File, newFile?: File) {
-		const _files = Array.from(files());
+		const _files = files();
 		const index = _files.findIndex(_file => _file === file);
 		if (newFile) _files.splice(index, 1, newFile);
 		else _files.splice(index, 1);
@@ -64,20 +67,9 @@ export default function App() {
 	}
 
 	function setFileName(file: File, name: string) {
+		if (name === file.name) return;
 		const renamedFile = new File([file], name, { type: file.type });
 		spliceFile(file, renamedFile);
-	}
-
-	function nameHasSpoiler(name: string) {
-		return name.startsWith("||") && name.endsWith("||");
-	}
-
-	function toggleFileSpoiler(file: File) {
-		if (nameHasSpoiler(file.name)) {
-			setFileName(file, file.name.slice(2, -2));
-		} else {
-			setFileName(file, "||" + file.name + "||");
-		}
 	}
 
 	return <>
@@ -107,11 +99,10 @@ export default function App() {
 		<hr></hr>
 		<Status state={statusState} message={statusMessage}></Status>
 		<For each={files()}>{(file, index) =>
-			<FileViewer file={() => files()[index()]}
-				hasSpoiler={() => nameHasSpoiler(files()[index()].name)}
-				removeDisabled={() => state() !== AppState.Ready}
-				toggleSpoiler={() => toggleFileSpoiler(files()[index()])}
-				removeFile={() => spliceFile(files()[index()])}></FileViewer>
+			<FileViewer file={file}
+				setFileName={(fileName: string) => setFileName(files()[index()], fileName)}
+				removeFile={() => spliceFile(files()[index()])}
+				removeDisabled={() => state() !== AppState.Ready}></FileViewer>
 		}</For>
 		<Show when={state() === AppState.Ready}>
 			<button class="add-file-button" onClick={inputFiles}>+</button>
