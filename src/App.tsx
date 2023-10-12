@@ -18,10 +18,7 @@ export default function App() {
 	const [state, setState] = createSignal(AppState.Ready) as Signal<AppState>;
 	const [statusState, setStatusState] = createSignal(StatusState.None) as Signal<StatusState>;
 	const [statusMessage, setStatusMessage] = createSignal("") as Signal<string>;
-	const [password, setPassword] = createSignal(
-		["pump", "bread", "bulb", "pitch", "owl", "sushi", "bike", "icicle", "memory", "plot",
-			"cap", "snail", "judo", "bread", "unit", "vase", "tempo", "injury", "output", "region",
-			"twist", "rank", "string", "boat"]) as Signal<(null | string)[]>;
+	const [password, setPassword] = createSignal(new Array(24)) as Signal<(null | string)[]>;
 	const [files, setFiles] = createSignal([] as File[]) as Signal<File[]>;
 
 	const fileInput = document.createElement("input");
